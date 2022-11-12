@@ -40,4 +40,26 @@ class CustomerResourceTest {
             .body("address.province", equalTo("Padova"))
             .body("address.region", equalTo("Veneto"));
     }
+
+    @Test
+    void shouldCreateTheGivenCustomerSuccessfullyWithServerSideGeneratedCustomerUuid_WhenPostingToTheEndpoint() {
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenCustomer)
+        .when()
+            .post()
+        .then()
+            .body("uuid", equalTo("c8a255af-208d-4a98-bbff-8244a7a28609"))
+            .body("name", equalTo("Nicola"))
+            .body("surname", equalTo("Landolfi"))
+            .body("fiscal_code", equalTo("XFFTPK41D24B969W"))
+            .body("address.street", equalTo("Via fasulla 10"))
+            .body("address.city", equalTo("Padova"))
+            .body("address.province", equalTo("Padova"))
+            .body("address.region", equalTo("Veneto"));
+    }
 }
