@@ -5,6 +5,7 @@ import io.landolfi.generator.UniqueIdGenerator;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.*;
@@ -34,5 +35,11 @@ public class CustomerResource {
     @GET
     public CustomersDto retrieveAllCustomers() {
         return new CustomersDto(customers.values().stream().toList());
+    }
+
+    @GET
+    @Path("/{customerId}")
+    public CustomersDto retrieveCustomerById(@PathParam("customerId") String customerId) {
+        return new CustomersDto(Collections.singletonList(customers.get(UUID.fromString(customerId))));
     }
 }
