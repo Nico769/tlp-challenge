@@ -3,7 +3,7 @@ package io.landolfi.integration;
 import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
 import io.landolfi.customer.CustomerResource;
-import io.landolfi.customer.CustomerUuidGeneratorFake;
+import io.landolfi.doubles.CustomerUuidGeneratorFake;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;

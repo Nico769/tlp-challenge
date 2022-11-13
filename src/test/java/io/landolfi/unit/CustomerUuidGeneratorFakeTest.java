@@ -1,6 +1,6 @@
 package io.landolfi.unit;
 
-import io.landolfi.customer.CustomerUuidGeneratorFake;
+import io.landolfi.doubles.CustomerUuidGeneratorFake;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

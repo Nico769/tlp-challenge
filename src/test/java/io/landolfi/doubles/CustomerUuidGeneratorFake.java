@@ -1,12 +1,14 @@
-package io.landolfi.customer;
+package io.landolfi.doubles;
 
 import io.landolfi.generator.UniqueIdGenerator;
+import io.quarkus.test.Mock;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Mock
 @ApplicationScoped
 public class CustomerUuidGeneratorFake implements UniqueIdGenerator<UUID> {
     private static final UUID firstCustomerUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
