@@ -2,10 +2,12 @@ package io.landolfi.customer;
 
 import io.landolfi.generator.UniqueIdGenerator;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@ApplicationScoped
 public class CustomerUuidGeneratorFake implements UniqueIdGenerator<UUID> {
     private static final UUID firstCustomerUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
     private static final UUID secondCustomerUuid = UUID.fromString("12014578-3bd6-4fd8-9dc2-2e40f83831d2");
