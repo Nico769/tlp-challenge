@@ -4,10 +4,13 @@ import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
 import io.landolfi.customer.CustomerResource;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
+import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.net.URI;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -16,6 +19,9 @@ import static org.hamcrest.Matchers.equalTo;
 @QuarkusTest
 @TestHTTPEndpoint(CustomerResource.class)
 class CustomerResourceTest {
+    @TestHTTPEndpoint(CustomerResource.class)
+    @TestHTTPResource
+    URI customersUri;
 
     @Test
     void shouldCreateTheGivenCustomerSuccessfullyIgnoringTheClientProvidedCustomerUuid_WhenPostingToTheEndpoint() {
@@ -31,6 +37,9 @@ class CustomerResourceTest {
         .when()
             .post()
         .then()
+            .statusCode(201)
+            .header(HttpHeaders.LOCATION,
+                    customersUri.resolve(customersUri.getPath() + "/c8a255af-208d-4a98-bbff-8244a7a28609").toString())
             .body("uuid", equalTo("c8a255af-208d-4a98-bbff-8244a7a28609"))
             .body("name", equalTo("Nicola"))
             .body("surname", equalTo("Landolfi"))
@@ -53,6 +62,9 @@ class CustomerResourceTest {
         .when()
             .post()
         .then()
+            .statusCode(201)
+            .header(HttpHeaders.LOCATION,
+                    customersUri.resolve(customersUri.getPath() + "/c8a255af-208d-4a98-bbff-8244a7a28609").toString())
             .body("uuid", equalTo("c8a255af-208d-4a98-bbff-8244a7a28609"))
             .body("name", equalTo("Nicola"))
             .body("surname", equalTo("Landolfi"))
