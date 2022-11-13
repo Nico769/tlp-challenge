@@ -18,8 +18,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(CustomerResource.class)
@@ -198,5 +197,14 @@ class CustomerResourceTest {
             .body("customers[0].address.city", equalTo("Padova"))
             .body("customers[0].address.province", equalTo("Padova"))
             .body("customers[0].address.region", equalTo("Veneto"));
+    }
+
+    @Test
+    void shouldNotRetrieveAnyCustomer_WhenANonExistingCustomerIsRequested(){
+        when()
+            .get("/bb1b3c73-cecc-4813-9e45-a34f68c624a8")
+        .then()
+            .statusCode(200)
+            .body("customers", is(empty()));
     }
 }

@@ -40,6 +40,10 @@ public class CustomerResource {
     @GET
     @Path("/{customerId}")
     public CustomersDto retrieveCustomerById(@PathParam("customerId") String customerId) {
-        return new CustomersDto(Collections.singletonList(customers.get(UUID.fromString(customerId))));
+        CustomerDto toReturn = customers.get(UUID.fromString(customerId));
+        if (toReturn == null) {
+            return new CustomersDto(Collections.emptyList());
+        }
+        return new CustomersDto(Collections.singletonList(toReturn));
     }
 }
