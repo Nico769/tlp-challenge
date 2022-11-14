@@ -3,6 +3,7 @@ package io.landolfi.integration;
 import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
 import io.landolfi.customer.CustomerResource;
+import io.landolfi.customer.repository.InMemoryCustomerRepository;
 import io.landolfi.doubles.CustomerUuidGeneratorFake;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.common.http.TestHTTPResource;
@@ -18,6 +19,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
@@ -28,11 +30,15 @@ class CustomerResourceTest {
     URI customersUri;
 
     @Inject
+    InMemoryCustomerRepository customerRepository;
+
+    @Inject
     CustomerUuidGeneratorFake idGeneratorFake;
 
     @BeforeEach
     void beforeEach() {
         idGeneratorFake.reset();
+        customerRepository.deleteAll();
     }
 
     @Test
@@ -206,5 +212,16 @@ class CustomerResourceTest {
         .then()
             .statusCode(200)
             .body("customers", is(empty()));
+    }
+    
+    @Test
+    void shouldNotPerformAnyUpdateAndReturnNotFound_WhenTryingToUpdateANonExistingCustomer(){
+        when()
+            .put("/bb1b3c73-cecc-4813-9e45-a34f68c624a8")
+        .then()
+            .statusCode(404);
+
+        // Make sure that the initial state of the repository hasn't been changed
+        assertThat(customerRepository.findAll()).isEmpty();
     }
 }

@@ -3,10 +3,7 @@ package io.landolfi.customer;
 import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.generator.UniqueIdGenerator;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collections;
@@ -49,5 +46,16 @@ public class CustomerResource {
             return new CustomersDto(Collections.emptyList());
         }
         return new CustomersDto(Collections.singletonList(toReturn.get()));
+    }
+
+    @PUT
+    @Path("/{customerId}")
+    public Response updateCustomer(@PathParam("customerId") String customerId) {
+        Optional<CustomerDto> toReturn = customerRepository.findByUuid(customerId);
+        if (toReturn.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        // TODO Nico769 14/11/22: just do this for now
+        return Response.ok().build();
     }
 }

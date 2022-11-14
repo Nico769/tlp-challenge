@@ -35,4 +35,9 @@ public class InMemoryCustomerRepository implements CustomerRepository<CustomerDt
         return customerDto;
     }
 
+    @Override
+    public void deleteAll() {
+        customers.clear();
+    }
+
 }

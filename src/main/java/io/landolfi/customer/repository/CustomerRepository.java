@@ -9,4 +9,6 @@ public interface CustomerRepository<T> {
     Optional<T> findByUuid(String uuid);
 
     T save(T customer);
+
+    void deleteAll();
 }
