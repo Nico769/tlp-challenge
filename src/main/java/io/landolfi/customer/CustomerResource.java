@@ -50,12 +50,19 @@ public class CustomerResource {
 
     @PUT
     @Path("/{customerId}")
-    public Response updateCustomer(@PathParam("customerId") String customerId) {
-        Optional<CustomerDto> toReturn = customerRepository.findByUuid(customerId);
-        if (toReturn.isEmpty()) {
+    public Response updateCustomer(@PathParam("customerId") String customerId, CustomerDto received) {
+        Optional<CustomerDto> toUpdate = customerRepository.findByUuid(customerId);
+        if (toUpdate.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        // TODO Nico769 14/11/22: just do this for now
-        return Response.ok().build();
+
+        // TODO Nico769 14/11/22: for now update only if the UUIDs match
+        if (toUpdate.get().uuid().equals(received.uuid())) {
+            customerRepository.save(received);
+            return Response.ok(received).build();
+        }
+
+        // If we got here it means that the client is trying to update by UUID (among the other things)
+        return Response.status(Response.Status.METHOD_NOT_ALLOWED).build();
     }
 }

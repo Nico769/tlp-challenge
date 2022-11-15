@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
@@ -216,12 +217,54 @@ class CustomerResourceTest {
     
     @Test
     void shouldNotPerformAnyUpdateAndReturnNotFound_WhenTryingToUpdateANonExistingCustomer(){
-        when()
-            .put("/bb1b3c73-cecc-4813-9e45-a34f68c624a8")
+        // Arrange
+        UUID nonExistingCustomerUuid = UUID.fromString("bb1b3c73-cecc-4813-9e45-a34f68c624a8");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(nonExistingCustomerUuid, "Non", "Esiste", "XFFTPK41D24B969W",
+                givenAddress);
+
+        // Act and Assert
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenCustomer)
+        .when()
+            .put("/" + nonExistingCustomerUuid)
         .then()
             .statusCode(404);
 
         // Make sure that the initial state of the repository hasn't been changed
         assertThat(customerRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldRetrieveTheUpdatedCustomerSuccessfully_WhenUpdatingACustomerByAddress(){
+        // Arrange
+        UUID customerToUpdateUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(customerToUpdateUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+        customerRepository.save(givenCustomer);
+
+        AddressDto expectedAddress = new AddressDto("Via molto fasulla 20", "Milano", "Milano", "Lombardia");
+        CustomerDto expectedCustomer = new CustomerDto(customerToUpdateUuid, givenCustomer.name(),
+                givenCustomer.surname(), givenCustomer.fiscalCode(), expectedAddress);
+
+        // Act and Assert
+        CustomerDto actualCustomer =
+                given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(expectedCustomer)
+                .when()
+                    .put("/" + customerToUpdateUuid)
+                .then()
+                    .statusCode(200)
+                    .extract().body().as(CustomerDto.class);
+
+        // Make sure that the updated customer, returned within the PUT response,
+        // is equal to the customer to update that was provided to the PUT request
+        assertThat(actualCustomer).isEqualTo(expectedCustomer);
+        // Make sure that the updated customer is stored successfully in the repository
+        Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(customerToUpdateUuid.toString());
+        assertThat(storedCustomer).get().isEqualTo(expectedCustomer);
     }
 }
