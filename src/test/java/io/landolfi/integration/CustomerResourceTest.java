@@ -5,6 +5,7 @@ import io.landolfi.customer.CustomerDto;
 import io.landolfi.customer.CustomerResource;
 import io.landolfi.customer.repository.InMemoryCustomerRepository;
 import io.landolfi.doubles.CustomerUuidGeneratorFake;
+import io.landolfi.util.rest.ErrorDto;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -266,5 +267,38 @@ class CustomerResourceTest {
         // Make sure that the updated customer is stored successfully in the repository
         Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(customerToUpdateUuid.toString());
         assertThat(storedCustomer).get().isEqualTo(expectedCustomer);
+    }
+    
+    @Test
+    void shouldNotPerformAnyUpdateAndReturnUnprocessableEntityAlongWithTheReason_WhenTryingToUpdateACustomerByAnyImmutableField(){
+        // Arrange
+        UUID customerToUpdateUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(customerToUpdateUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+        customerRepository.save(givenCustomer);
+
+        CustomerDto unprocessableCustomer = new CustomerDto(UUID.fromString("ed0984ea-4fff-4b42-bb3a-39736784b78e"),
+                "Immutabile", "Immutabile", "MNNWVM74A25C595N", givenAddress);
+
+        String expectedReason = "A customer cannot be updated by the following field(s): uuid, name, surname, " +
+                "fiscal_code";
+        ErrorDto expectedError = new ErrorDto(expectedReason);
+
+        // Act and Assert
+        ErrorDto actualError =
+                given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(unprocessableCustomer)
+                .when()
+                    .put("/" + customerToUpdateUuid)
+                .then()
+                    .statusCode(422)
+                    .extract().body().as(ErrorDto.class);
+
+        assertThat(actualError).isEqualTo(expectedError);
+        // Make sure that the unprocessable customer is NOT stored in the repository
+        Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(customerToUpdateUuid.toString());
+        assertThat(storedCustomer).get().isEqualTo(givenCustomer);
     }
 }

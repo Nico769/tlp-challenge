@@ -12,5 +12,12 @@ public record CustomerDto(UUID uuid, String name, String surname, @JsonProperty(
     public CustomerDto(String name, String surname, String fiscalCode, AddressDto address) {
         this(null, name, surname, fiscalCode, address);
     }
+    
+    public boolean isAnyImmutableFieldsDifferentFrom(CustomerDto other) {
+        return !(uuid.equals(other.uuid())
+                && name.equals(other.name())
+                && surname.equals(other.surname())
+                && fiscalCode.equals(other.fiscalCode()));
+    }
 
 }

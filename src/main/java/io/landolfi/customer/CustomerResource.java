@@ -2,6 +2,7 @@ package io.landolfi.customer;
 
 import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.generator.UniqueIdGenerator;
+import io.landolfi.util.rest.ErrorDto;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -56,13 +57,14 @@ public class CustomerResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        // TODO Nico769 14/11/22: for now update only if the UUIDs match
-        if (toUpdate.get().uuid().equals(received.uuid())) {
+        if (!toUpdate.get().isAnyImmutableFieldsDifferentFrom(received)){
             customerRepository.save(received);
             return Response.ok(received).build();
         }
 
-        // If we got here it means that the client is trying to update by UUID (among the other things)
-        return Response.status(Response.Status.METHOD_NOT_ALLOWED).build();
+        // If we got here it means that the client is trying to update one of the immutable fields
+        String errorReason = "A customer cannot be updated by the following field(s): uuid, name, surname, " +
+                "fiscal_code";
+        return Response.status(422).entity(new ErrorDto(errorReason)).build();
     }
 }
