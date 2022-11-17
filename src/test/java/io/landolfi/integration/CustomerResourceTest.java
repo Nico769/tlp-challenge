@@ -18,8 +18,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(CustomerResource.class)
@@ -87,7 +86,7 @@ class CustomerResourceTest {
             .body("address.province", equalTo("Padova"))
             .body("address.region", equalTo("Veneto"));
     }
-    
+
     @Test
     void shouldRetrieveOneCustomerSuccessfully_WhenRequestingAllCustomersAndOneCustomerHasBeenPostedToTheEndpoint(){
         // Arrange
@@ -167,5 +166,45 @@ class CustomerResourceTest {
             .body("customers[1].address.city", equalTo("Milano"))
             .body("customers[1].address.province", equalTo("Milano"))
             .body("customers[1].address.region", equalTo("Lombardia"));
+    }
+
+    @Test
+    void shouldRetrieveTheRequestedCustomerSuccessfully_WhenThatCustomerIsRequestedByUuidAndHasBeenPostedToTheEndpoint(){
+        // Arrange
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenCustomer)
+        .when()
+            .post()
+        .then()
+            .statusCode(201);
+
+        // Act and Assert
+        when()
+            .get("/c8a255af-208d-4a98-bbff-8244a7a28609")
+        .then()
+            .statusCode(200)
+            .body("customers", hasSize(1))
+            .body("customers[0].uuid", equalTo("c8a255af-208d-4a98-bbff-8244a7a28609"))
+            .body("customers[0].name", equalTo("Nicola"))
+            .body("customers[0].surname", equalTo("Landolfi"))
+            .body("customers[0].fiscal_code", equalTo("XFFTPK41D24B969W"))
+            .body("customers[0].address.street", equalTo("Via fasulla 10"))
+            .body("customers[0].address.city", equalTo("Padova"))
+            .body("customers[0].address.province", equalTo("Padova"))
+            .body("customers[0].address.region", equalTo("Veneto"));
+    }
+
+    @Test
+    void shouldNotRetrieveAnyCustomer_WhenANonExistingCustomerIsRequested(){
+        when()
+            .get("/bb1b3c73-cecc-4813-9e45-a34f68c624a8")
+        .then()
+            .statusCode(200)
+            .body("customers", is(empty()));
     }
 }
