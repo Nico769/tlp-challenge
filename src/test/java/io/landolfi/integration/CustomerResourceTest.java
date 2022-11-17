@@ -301,4 +301,23 @@ class CustomerResourceTest {
         Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(customerToUpdateUuid.toString());
         assertThat(storedCustomer).get().isEqualTo(givenCustomer);
     }
+
+    @Test
+    void shouldDeleteTheRequestedCustomerSuccessfullyAndReturnNoContent_WhenDeletingAnExistingCustomer(){
+        // Arrange
+        UUID customerToDeleteUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(customerToDeleteUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+        customerRepository.save(givenCustomer);
+
+        // Act and Assert
+        when()
+            .delete("/" + customerToDeleteUuid)
+        .then()
+            .statusCode(204);
+
+        // Make sure that the customer is effectively deleted from the repository
+        assertThat(customerRepository.findAll()).isEmpty();
+    }
 }

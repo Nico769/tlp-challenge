@@ -67,4 +67,11 @@ public class CustomerResource {
                 "fiscal_code";
         return Response.status(422).entity(new ErrorDto(errorReason)).build();
     }
+
+    @DELETE
+    @Path("/{customerId}")
+    public Response deleteCustomer(@PathParam("customerId") String customerId) {
+        customerRepository.deleteById(customerId);
+        return Response.noContent().build();
+    }
 }

@@ -40,4 +40,9 @@ public class InMemoryCustomerRepository implements CustomerRepository<CustomerDt
         customers.clear();
     }
 
+    @Override
+    public void deleteById(String uuid) {
+        customers.remove(UUID.fromString(uuid));
+    }
+
 }
