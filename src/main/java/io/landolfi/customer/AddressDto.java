@@ -1,4 +1,7 @@
 package io.landolfi.customer;
 
-public record AddressDto(String street, String city, String province, String region) {
+import javax.validation.constraints.NotBlank;
+
+public record AddressDto(@NotBlank String street, @NotBlank String city, @NotBlank String province,
+                         @NotBlank String region) {
 }
