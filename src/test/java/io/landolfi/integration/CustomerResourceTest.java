@@ -313,11 +313,22 @@ class CustomerResourceTest {
 
         // Act and Assert
         when()
-            .delete("/" + customerToDeleteUuid)
-        .then()
-            .statusCode(204);
+                .delete("/" + customerToDeleteUuid)
+                .then()
+                .statusCode(204);
 
         // Make sure that the customer is effectively deleted from the repository
+        assertThat(customerRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldNotPerformAnyDeleteAndReturnNoContent_WhenTryingToDeleteANonExistingCustomer() {
+        when()
+                .delete("/bb1b3c73-cecc-4813-9e45-a34f68c624a8")
+                .then()
+                .statusCode(204);
+
+        // Make sure that the initial state of the repository hasn't been changed
         assertThat(customerRepository.findAll()).isEmpty();
     }
 }
