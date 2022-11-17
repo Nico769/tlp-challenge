@@ -11,4 +11,6 @@ public interface CustomerRepository<T> {
     T save(T customer);
 
     void deleteAll();
+
+    void deleteById(String uuid);
 }
