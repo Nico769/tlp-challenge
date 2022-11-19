@@ -35,4 +35,9 @@ public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
         }
         return Optional.of(found);
     }
+
+    @Override
+    public void deleteById(String uuid) {
+        devices.remove(UUID.fromString(uuid));
+    }
 }

@@ -11,4 +11,6 @@ public interface DeviceRepository<T> {
     List<T> findAll();
 
     Optional<T> findByUuid(String uuid);
+
+    void deleteById(String uuid);
 }

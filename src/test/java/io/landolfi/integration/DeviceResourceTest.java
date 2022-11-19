@@ -225,4 +225,21 @@ class DeviceResourceTest {
         assertThat(storedDevice).get().isEqualTo(givenDevice);
     }
 
+    @Test
+    void shouldDeleteTheRequestedDeviceSuccessfullyAndReturnNoContent_WhenDeletingAnExistingDevice(){
+        // Arrange
+        String deviceToDeleteUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto givenDevice = new DeviceDto(deviceToDeleteUuid, DeviceState.ACTIVE);
+        deviceRepository.save(givenDevice);
+
+        // Act and Assert
+        when()
+            .delete("/" + deviceToDeleteUuid)
+        .then()
+            .statusCode(204);
+
+        // Make sure that the device is effectively deleted from the repository
+        assertThat(deviceRepository.findAll()).isEmpty();
+    }
+
 }
