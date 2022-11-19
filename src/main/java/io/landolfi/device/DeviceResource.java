@@ -57,4 +57,11 @@ public class DeviceResource {
         String errorReason = "A device cannot be updated by the following field(s): uuid";
         return Response.status(422).entity(new ErrorDto(errorReason)).build();
     }
+
+    @DELETE
+    @Path("/{deviceId}")
+    public Response deleteDevice(@PathParam("deviceId") String deviceId) {
+        deviceRepository.deleteById(deviceId);
+        return Response.noContent().build();
+    }
 }
