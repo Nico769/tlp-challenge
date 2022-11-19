@@ -3,10 +3,7 @@ package io.landolfi.device.repository;
 import io.landolfi.device.DeviceDto;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
@@ -23,5 +20,10 @@ public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
     @Override
     public void deleteAll() {
         devices.clear();
+    }
+
+    @Override
+    public List<DeviceDto> findAll() {
+        return devices.values().stream().toList();
     }
 }
