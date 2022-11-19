@@ -1,6 +1,9 @@
 package io.landolfi.customer;
 
 import io.landolfi.customer.repository.CustomerRepository;
+import io.landolfi.device.DeviceDto;
+import io.landolfi.device.DevicesDto;
+import io.landolfi.device.repository.DeviceRepository;
 import io.landolfi.generator.UniqueIdGenerator;
 import io.landolfi.util.rest.ErrorDto;
 
@@ -16,10 +19,13 @@ import java.util.UUID;
 public class CustomerResource {
     private final CustomerRepository<CustomerDto> customerRepository;
     private final UniqueIdGenerator<UUID> idGenerator;
+    private final DeviceRepository<DeviceDto> deviceRepository;
 
-    public CustomerResource(CustomerRepository<CustomerDto> customerRepository, UniqueIdGenerator<UUID> idGenerator) {
+    public CustomerResource(CustomerRepository<CustomerDto> customerRepository, UniqueIdGenerator<UUID> idGenerator,
+                            DeviceRepository<DeviceDto> deviceRepository) {
         this.customerRepository = customerRepository;
         this.idGenerator = idGenerator;
+        this.deviceRepository = deviceRepository;
     }
 
     @POST
@@ -74,5 +80,25 @@ public class CustomerResource {
     public Response deleteCustomer(@PathParam("customerId") String customerId) {
         customerRepository.deleteById(customerId);
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{customerId}/devices")
+    public Response createDeviceAssociatedToCustomer(@PathParam("customerId") String customerId,
+                                                     @Valid DeviceDto received) {
+        Optional<CustomerDto> optToCreateADeviceFor = customerRepository.findByUuid(customerId);
+        if (optToCreateADeviceFor.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        deviceRepository.save(received);
+
+        CustomerDto toCreateADeviceFor = optToCreateADeviceFor.get();
+        CustomerDto withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
+                toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
+                DevicesDto.withOneDevice(received));
+        customerRepository.save(withTheCreatedDevice);
+
+        return Response.created(URI.create("/devices/" + received.uuid())).entity(received).build();
     }
 }

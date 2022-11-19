@@ -4,6 +4,11 @@ import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
 import io.landolfi.customer.CustomerResource;
 import io.landolfi.customer.repository.InMemoryCustomerRepository;
+import io.landolfi.device.DeviceDto;
+import io.landolfi.device.DeviceResource;
+import io.landolfi.device.DeviceState;
+import io.landolfi.device.DevicesDto;
+import io.landolfi.device.repository.InMemoryDeviceRepository;
 import io.landolfi.doubles.CustomerUuidGeneratorFake;
 import io.landolfi.util.rest.ErrorDto;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
@@ -31,8 +36,15 @@ class CustomerResourceTest {
     @TestHTTPResource
     URI customersUri;
 
+    @TestHTTPEndpoint(DeviceResource.class)
+    @TestHTTPResource
+    URI devicesUri;
+
     @Inject
     InMemoryCustomerRepository customerRepository;
+
+    @Inject
+    InMemoryDeviceRepository deviceRepository;
 
     @Inject
     CustomerUuidGeneratorFake idGeneratorFake;
@@ -41,6 +53,7 @@ class CustomerResourceTest {
     void beforeEach() {
         idGeneratorFake.reset();
         customerRepository.deleteAll();
+        deviceRepository.deleteAll();
     }
 
     @Test
@@ -348,5 +361,38 @@ class CustomerResourceTest {
             .post()
         .then()
             .statusCode(400);
+    }
+    
+    @Test
+    void shouldSuccessfullyCreateTheGivenDeviceAssociatedToTheGivenCustomer_WhenPostingToTheSubresourceEndpoint(){
+        // Arrange
+        UUID givenCustomerUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(givenCustomerUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress);
+        customerRepository.save(givenCustomer);
+
+        String deviceToCreateUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto toCreate = new DeviceDto(deviceToCreateUuid, DeviceState.ACTIVE);
+
+        // Act and Assert
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(toCreate)
+        .when()
+            .post("/" + givenCustomerUuid + "/devices")
+        .then()
+            .statusCode(201)
+            .header(HttpHeaders.LOCATION, devicesUri.resolve(devicesUri.getPath() + "/" + deviceToCreateUuid).toString())
+            .body("uuid", equalTo(deviceToCreateUuid))
+            .body("state", equalTo(DeviceState.ACTIVE.toString()));
+
+        // Make sure that the device is stored successfully in the repository
+        assertThat(deviceRepository.findAll()).isNotEmpty();
+
+        // Make sure that the created device has been correctly associated to the given customer
+        Optional<CustomerDto> optGivenCustomerWithCreatedDevice = customerRepository.findByUuid(givenCustomerUuid.toString());
+        CustomerDto givenCustomerWithCreatedDevice = optGivenCustomerWithCreatedDevice.orElseThrow(RuntimeException::new);
+        assertThat(givenCustomerWithCreatedDevice.devices()).isEqualTo(DevicesDto.withOneDevice(toCreate));
     }
 }
