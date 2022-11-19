@@ -1,6 +1,7 @@
 package io.landolfi.device;
 
+import javax.validation.Valid;
 import java.util.List;
 
-public record DevicesDto(List<DeviceDto> devices) {
+public record DevicesDto(@Valid List<DeviceDto> devices) {
 }

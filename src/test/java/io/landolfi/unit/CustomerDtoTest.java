@@ -70,4 +70,17 @@ class CustomerDtoTest {
         // Assert
         assertThat(violations).isNotEmpty();
     }
+
+    @Test
+    void shouldAllowEmptyDevices(){
+        // Arrange
+        AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto withEmptyDevices = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address);
+
+        // Act
+        var violations = validator.validate(withEmptyDevices);
+
+        // Assert
+        assertThat(violations).isEmpty();
+    }
 }
