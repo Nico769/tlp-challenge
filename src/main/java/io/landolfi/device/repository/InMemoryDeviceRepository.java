@@ -9,7 +9,7 @@ import java.util.*;
 public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
 
 
-    private final Map<UUID, DeviceDto> devices = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, DeviceDto> devices = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
     public DeviceDto save(DeviceDto device) {
