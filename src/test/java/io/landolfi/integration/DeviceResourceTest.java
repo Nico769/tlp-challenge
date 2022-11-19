@@ -17,8 +17,7 @@ import java.net.URI;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(DeviceResource.class)
@@ -135,6 +134,15 @@ class DeviceResourceTest {
             .body("devices", hasSize(1))
             .body("devices[0].uuid", equalTo(deviceToRetrieveUuid))
             .body("devices[0].state", equalTo(DeviceState.INACTIVE.toString()));
+    }
+
+    @Test
+    void shouldNotRetrieveAnyDevice_WhenANonExistingDeviceIsRequested(){
+        when()
+            .get("/872cb98b-9106-4d26-acfa-083a62fd9727")
+        .then()
+            .statusCode(200)
+            .body("devices", is(empty()));
     }
 
 }
