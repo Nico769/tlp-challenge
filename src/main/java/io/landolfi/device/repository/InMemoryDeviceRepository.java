@@ -3,16 +3,13 @@ package io.landolfi.device.repository;
 import io.landolfi.device.DeviceDto;
 
 import javax.enterprise.context.ApplicationScoped;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
 
 
-    private final Map<UUID, DeviceDto> devices = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, DeviceDto> devices = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
     public DeviceDto save(DeviceDto device) {
@@ -23,5 +20,10 @@ public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
     @Override
     public void deleteAll() {
         devices.clear();
+    }
+
+    @Override
+    public List<DeviceDto> findAll() {
+        return devices.values().stream().toList();
     }
 }

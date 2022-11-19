@@ -3,6 +3,7 @@ package io.landolfi.device;
 import io.landolfi.device.repository.DeviceRepository;
 
 import javax.validation.Valid;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -21,5 +22,10 @@ public class DeviceResource {
     public Response createDevice(@Valid DeviceDto received) {
         deviceRepository.save(received);
         return Response.created(URI.create("/devices/" + received.uuid())).entity(received).build();
+    }
+
+    @GET
+    public DevicesDto retrieveAllDevices() {
+        return new DevicesDto(deviceRepository.findAll());
     }
 }

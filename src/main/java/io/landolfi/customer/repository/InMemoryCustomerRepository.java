@@ -13,7 +13,7 @@ import java.util.*;
  */
 @ApplicationScoped
 public class InMemoryCustomerRepository implements CustomerRepository<CustomerDto> {
-    private final Map<UUID, CustomerDto> customers = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, CustomerDto> customers = Collections.synchronizedMap(new LinkedHashMap<>());
 
     @Override
     public List<CustomerDto> findAll() {
