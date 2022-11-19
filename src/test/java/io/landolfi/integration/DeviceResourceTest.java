@@ -241,5 +241,16 @@ class DeviceResourceTest {
         // Make sure that the device is effectively deleted from the repository
         assertThat(deviceRepository.findAll()).isEmpty();
     }
+    
+    @Test
+    void shouldNotPerformAnyDeleteAndReturnNoContent_WhenTryingToDeleteANonExistingDevice(){
+        when()
+            .delete("/872cb98b-9106-4d26-acfa-083a62fd9727")
+        .then()
+            .statusCode(204);
+
+        // Make sure that the initial state of the repository hasn't been changed
+        assertThat(deviceRepository.findAll()).isEmpty();
+    }
 
 }
