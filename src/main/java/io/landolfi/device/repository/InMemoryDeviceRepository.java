@@ -26,4 +26,13 @@ public class InMemoryDeviceRepository implements DeviceRepository<DeviceDto> {
     public List<DeviceDto> findAll() {
         return devices.values().stream().toList();
     }
+
+    @Override
+    public Optional<DeviceDto> findByUuid(String uuid) {
+        DeviceDto found = devices.get(UUID.fromString(uuid));
+        if (found == null) {
+            return Optional.empty();
+        }
+        return Optional.of(found);
+    }
 }

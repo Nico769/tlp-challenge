@@ -17,8 +17,7 @@ import java.net.URI;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 @TestHTTPEndpoint(DeviceResource.class)
@@ -111,6 +110,39 @@ class DeviceResourceTest {
             .body("devices[0].state", equalTo(DeviceState.LOST.toString()))
             .body("devices[1].uuid", equalTo(secondDeviceUuid))
             .body("devices[1].state", equalTo(DeviceState.INACTIVE.toString()));
+    }
+
+    @Test
+    void shouldRetrieveTheRequestedDeviceSuccessfully_WhenThatDeviceIsRequestedByUuidAndHasBeenPostedToTheEndpoint(){
+        // Arrange
+        String deviceToRetrieveUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto givenDevice = new DeviceDto(deviceToRetrieveUuid, DeviceState.INACTIVE);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenDevice)
+        .when()
+            .post()
+        .then()
+            .statusCode(201);
+
+        // Act and Assert
+        when()
+            .get("/"+deviceToRetrieveUuid)
+        .then()
+            .statusCode(200)
+            .body("devices", hasSize(1))
+            .body("devices[0].uuid", equalTo(deviceToRetrieveUuid))
+            .body("devices[0].state", equalTo(DeviceState.INACTIVE.toString()));
+    }
+
+    @Test
+    void shouldNotRetrieveAnyDevice_WhenANonExistingDeviceIsRequested(){
+        when()
+            .get("/872cb98b-9106-4d26-acfa-083a62fd9727")
+        .then()
+            .statusCode(200)
+            .body("devices", is(empty()));
     }
 
 }
