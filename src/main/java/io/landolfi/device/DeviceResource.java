@@ -46,6 +46,8 @@ public class DeviceResource {
         if (toUpdate.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok().build();
+
+        deviceRepository.save(received);
+        return Response.ok(received).build();
     }
 }

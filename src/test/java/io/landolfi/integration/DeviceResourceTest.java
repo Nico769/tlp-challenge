@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -163,6 +164,34 @@ class DeviceResourceTest {
 
         // Make sure that the initial state of the repository hasn't been changed
         assertThat(deviceRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void shouldRetrieveTheUpdatedDeviceSuccessfully_WhenUpdatingADeviceByState(){
+        // Arrange
+        String deviceToUpdateUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto givenDevice = new DeviceDto(deviceToUpdateUuid, DeviceState.ACTIVE);
+        deviceRepository.save(givenDevice);
+
+        DeviceDto expectedDevice = new DeviceDto(deviceToUpdateUuid, DeviceState.LOST);
+
+        // Act and Assert
+        DeviceDto actualDevice =
+                given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(expectedDevice)
+                .when()
+                    .put("/" + deviceToUpdateUuid)
+                .then()
+                    .statusCode(200)
+                    .extract().body().as(DeviceDto.class);
+
+        // Make sure that the updated device, returned within the PUT response,
+        // is equal to the device to update that was provided to the PUT request
+        assertThat(actualDevice).isEqualTo(expectedDevice);
+        // Make sure that the updated device is stored successfully in the repository
+        Optional<DeviceDto> storedDevice = deviceRepository.findByUuid(deviceToUpdateUuid);
+        assertThat(storedDevice).get().isEqualTo(expectedDevice);
     }
 
 }
