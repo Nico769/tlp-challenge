@@ -4,6 +4,7 @@ import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.generator.UniqueIdGenerator;
 import io.landolfi.util.rest.ErrorDto;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
@@ -22,7 +23,7 @@ public class CustomerResource {
     }
 
     @POST
-    public Response createCustomer(CustomerDto received) {
+    public Response createCustomer(@Valid CustomerDto received) {
         Optional<UUID> generated = idGenerator.next();
         if (generated.isEmpty()) {
             return Response.serverError().build();
@@ -51,13 +52,13 @@ public class CustomerResource {
 
     @PUT
     @Path("/{customerId}")
-    public Response updateCustomer(@PathParam("customerId") String customerId, CustomerDto received) {
+    public Response updateCustomer(@PathParam("customerId") String customerId, @Valid CustomerDto received) {
         Optional<CustomerDto> toUpdate = customerRepository.findByUuid(customerId);
         if (toUpdate.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!toUpdate.get().isAnyImmutableFieldsDifferentFrom(received)){
+        if (!toUpdate.get().isAnyImmutableFieldsDifferentFrom(received)) {
             customerRepository.save(received);
             return Response.ok(received).build();
         }
