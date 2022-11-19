@@ -113,4 +113,28 @@ class DeviceResourceTest {
             .body("devices[1].state", equalTo(DeviceState.INACTIVE.toString()));
     }
 
+    @Test
+    void shouldRetrieveTheRequestedDeviceSuccessfully_WhenThatDeviceIsRequestedByUuidAndHasBeenPostedToTheEndpoint(){
+        // Arrange
+        String deviceToRetrieveUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto givenDevice = new DeviceDto(deviceToRetrieveUuid, DeviceState.INACTIVE);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenDevice)
+        .when()
+            .post()
+        .then()
+            .statusCode(201);
+
+        // Act and Assert
+        when()
+            .get("/"+deviceToRetrieveUuid)
+        .then()
+            .statusCode(200)
+            .body("devices", hasSize(1))
+            .body("devices[0].uuid", equalTo(deviceToRetrieveUuid))
+            .body("devices[0].state", equalTo(DeviceState.INACTIVE.toString()));
+    }
+
 }
