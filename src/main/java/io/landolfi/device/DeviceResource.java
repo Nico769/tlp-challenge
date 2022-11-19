@@ -1,6 +1,7 @@
 package io.landolfi.device;
 
 import io.landolfi.device.repository.DeviceRepository;
+import io.landolfi.util.rest.ErrorDto;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -47,7 +48,13 @@ public class DeviceResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        deviceRepository.save(received);
-        return Response.ok(received).build();
+        if (!toUpdate.get().isAnyImmutableFieldDifferentFrom(received)) {
+            deviceRepository.save(received);
+            return Response.ok(received).build();
+        }
+
+        // If we got here it means that the client is trying to update one of the immutable fields
+        String errorReason = "A device cannot be updated by the following field(s): uuid";
+        return Response.status(422).entity(new ErrorDto(errorReason)).build();
     }
 }

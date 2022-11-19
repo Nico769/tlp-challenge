@@ -4,6 +4,7 @@ import io.landolfi.device.DeviceDto;
 import io.landolfi.device.DeviceResource;
 import io.landolfi.device.DeviceState;
 import io.landolfi.device.repository.InMemoryDeviceRepository;
+import io.landolfi.util.rest.ErrorDto;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -192,6 +193,36 @@ class DeviceResourceTest {
         // Make sure that the updated device is stored successfully in the repository
         Optional<DeviceDto> storedDevice = deviceRepository.findByUuid(deviceToUpdateUuid);
         assertThat(storedDevice).get().isEqualTo(expectedDevice);
+    }
+
+    @Test
+    void shouldNotPerformAnyUpdateAndReturnUnprocessableEntityAlongWithTheReason_WhenTryingToUpdateADeviceByUuid(){
+        // Arrange
+        String deviceToUpdateUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceState givenState = DeviceState.ACTIVE;
+        DeviceDto givenDevice = new DeviceDto(deviceToUpdateUuid, givenState);
+        deviceRepository.save(givenDevice);
+
+        DeviceDto unprocessableDevice = new DeviceDto("872cb98b-9106-4d26-acfa-083a62fd9727", givenState);
+
+        String expectedReason = "A device cannot be updated by the following field(s): uuid";
+        ErrorDto expectedError = new ErrorDto(expectedReason);
+
+        // Act and Assert
+        ErrorDto actualError =
+                given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(unprocessableDevice)
+                .when()
+                    .put("/" + deviceToUpdateUuid)
+                .then()
+                    .statusCode(422)
+                    .extract().body().as(ErrorDto.class);
+
+        assertThat(actualError).isEqualTo(expectedError);
+        // Make sure that the unprocessable device is NOT stored in the repository
+        Optional<DeviceDto> storedDevice = deviceRepository.findByUuid(deviceToUpdateUuid);
+        assertThat(storedDevice).get().isEqualTo(givenDevice);
     }
 
 }
