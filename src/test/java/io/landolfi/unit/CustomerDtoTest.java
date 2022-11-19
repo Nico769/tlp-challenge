@@ -2,12 +2,16 @@ package io.landolfi.unit;
 
 import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
+import io.landolfi.device.DeviceDto;
+import io.landolfi.device.DeviceState;
+import io.landolfi.device.DevicesDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -72,7 +76,7 @@ class CustomerDtoTest {
     }
 
     @Test
-    void shouldAllowEmptyDevices(){
+    void shouldAllowEmptyDevices() {
         // Arrange
         AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
         CustomerDto withEmptyDevices = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address);
@@ -82,5 +86,36 @@ class CustomerDtoTest {
 
         // Assert
         assertThat(violations).isEmpty();
+    }
+
+    @Test
+    void shouldNotAllowADeviceRaisingAnyViolation() {
+        // Arrange
+        AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        DevicesDto withOneViolation = DevicesDto.withOneDevice(new DeviceDto("", DeviceState.ACTIVE));
+        CustomerDto withAnInvalidDevice = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address,
+                withOneViolation);
+
+        // Act
+        var violations = validator.validate(withAnInvalidDevice);
+
+        // Assert
+        assertThat(violations).isNotEmpty();
+    }
+
+    @Test
+    void shouldNotAllowMultipleDevicesRaisingAnyViolation() {
+        // Arrange
+        AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        DevicesDto withMultipleViolations = new DevicesDto(List.of(new DeviceDto("", DeviceState.ACTIVE),
+                new DeviceDto("", DeviceState.ACTIVE)));
+        CustomerDto withMultipleInvalidDevices = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address,
+                withMultipleViolations);
+
+        // Act
+        var violations = validator.validate(withMultipleInvalidDevices);
+
+        // Assert
+        assertThat(violations).isNotEmpty();
     }
 }

@@ -19,9 +19,15 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
         this(null, name, surname, fiscalCode, address, null);
     }
 
+    public CustomerDto(String name, String surname, String fiscalCode, AddressDto address, DevicesDto devices) {
+        this(null, name, surname, fiscalCode, address, devices);
+    }
+
     public CustomerDto(UUID uuid, String name, String surname, String fiscalCode, AddressDto address) {
         this(uuid, name, surname, fiscalCode, address, null);
     }
+
+
 
     public boolean isAnyImmutableFieldsDifferentFrom(CustomerDto other) {
         return !(uuid.equals(other.uuid())
