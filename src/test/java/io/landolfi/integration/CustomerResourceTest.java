@@ -331,4 +331,22 @@ class CustomerResourceTest {
         // Make sure that the initial state of the repository hasn't been changed
         assertThat(customerRepository.findAll()).isEmpty();
     }
+
+    /**
+     * TODO Nico769 19/11/22: for the sake of time, I'm not going to write a test verifying that 400 Bad Request
+     *                      is also returned when the client tries to perform a `POST` and/or a `PUT` operation that
+     *                      violates one or more constraints different from the one specified in the following test.
+     */
+    @Test
+    void shouldNotPerformAnyOperationAndReturnBadRequest_WhenTryingToPerformAnOperationThatRaisesAnyConstraintViolation() {
+        CustomerDto givenCustomerWithEmptyAddress = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", null);
+
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenCustomerWithEmptyAddress)
+        .when()
+            .post()
+        .then()
+            .statusCode(400);
+    }
 }
