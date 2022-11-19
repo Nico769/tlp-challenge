@@ -17,6 +17,7 @@ import java.net.URI;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
@@ -143,6 +144,25 @@ class DeviceResourceTest {
         .then()
             .statusCode(200)
             .body("devices", is(empty()));
+    }
+
+    @Test
+    void shouldNotPerformAnyUpdateAndReturnNotFound_WhenTryingToUpdateANonExistingDevice(){
+        // Arrange
+        String nonExistingDeviceUuid = "872cb98b-9106-4d26-acfa-083a62fd9727";
+        DeviceDto givenDevice = new DeviceDto(nonExistingDeviceUuid, DeviceState.LOST);
+
+        // Act and Assert
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(givenDevice)
+        .when()
+            .put("/" + nonExistingDeviceUuid)
+        .then()
+            .statusCode(404);
+
+        // Make sure that the initial state of the repository hasn't been changed
+        assertThat(deviceRepository.findAll()).isEmpty();
     }
 
 }

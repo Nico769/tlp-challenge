@@ -3,10 +3,7 @@ package io.landolfi.device;
 import io.landolfi.device.repository.DeviceRepository;
 
 import javax.validation.Valid;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collections;
@@ -40,5 +37,15 @@ public class DeviceResource {
            return new DevicesDto(Collections.emptyList());
        }
        return new DevicesDto(Collections.singletonList(toReturn.get()));
+    }
+
+    @PUT
+    @Path("/{deviceId}")
+    public Response updateDevice(@PathParam("deviceId") String deviceId, @Valid DeviceDto received) {
+        Optional<DeviceDto> toUpdate = deviceRepository.findByUuid(deviceId);
+        if (toUpdate.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok().build();
     }
 }
