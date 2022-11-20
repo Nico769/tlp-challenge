@@ -7,7 +7,6 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.util.Collections;
 import java.util.Optional;
 
 @Path("/devices")
@@ -35,7 +34,7 @@ public class DeviceResource {
     public DevicesDto retrieveDeviceById(@PathParam("deviceId") String deviceId) {
        Optional<DeviceDto> toReturn = deviceRepository.findByUuid(deviceId);
        if (toReturn.isEmpty()) {
-           return new DevicesDto(Collections.emptyList());
+           return DevicesDto.empty();
        }
        return DevicesDto.withOneDevice(toReturn.get());
     }
