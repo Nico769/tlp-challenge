@@ -37,7 +37,7 @@ public class DeviceResource {
        if (toReturn.isEmpty()) {
            return new DevicesDto(Collections.emptyList());
        }
-       return new DevicesDto(Collections.singletonList(toReturn.get()));
+       return DevicesDto.withOneDevice(toReturn.get());
     }
 
     @PUT
