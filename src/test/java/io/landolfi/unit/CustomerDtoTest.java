@@ -4,7 +4,6 @@ import io.landolfi.customer.AddressDto;
 import io.landolfi.customer.CustomerDto;
 import io.landolfi.device.DeviceDto;
 import io.landolfi.device.DeviceState;
-import io.landolfi.device.DevicesDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -92,7 +91,7 @@ class CustomerDtoTest {
     void shouldNotAllowADeviceRaisingAnyViolation() {
         // Arrange
         AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
-        DevicesDto withOneViolation = DevicesDto.withOneDevice(new DeviceDto("", DeviceState.ACTIVE));
+        List<DeviceDto> withOneViolation = List.of(new DeviceDto("", DeviceState.ACTIVE));
         CustomerDto withAnInvalidDevice = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address,
                 withOneViolation);
 
@@ -107,8 +106,8 @@ class CustomerDtoTest {
     void shouldNotAllowMultipleDevicesRaisingAnyViolation() {
         // Arrange
         AddressDto address = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
-        DevicesDto withMultipleViolations = new DevicesDto(List.of(new DeviceDto("", DeviceState.ACTIVE),
-                new DeviceDto("", DeviceState.ACTIVE)));
+        List<DeviceDto> withMultipleViolations = List.of(new DeviceDto("", DeviceState.ACTIVE),
+                new DeviceDto("", DeviceState.ACTIVE));
         CustomerDto withMultipleInvalidDevices = new CustomerDto("Nicola", "Landolfi", "XFFTPK41D24B969W", address,
                 withMultipleViolations);
 

@@ -2,7 +2,6 @@ package io.landolfi.customer;
 
 import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.device.DeviceDto;
-import io.landolfi.device.DevicesDto;
 import io.landolfi.device.repository.DeviceRepository;
 import io.landolfi.generator.UniqueIdGenerator;
 import io.landolfi.util.rest.ErrorDto;
@@ -12,6 +11,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -96,7 +96,7 @@ public class CustomerResource {
         CustomerDto toCreateADeviceFor = optToCreateADeviceFor.get();
         CustomerDto withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
                 toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
-                DevicesDto.withOneDevice(received));
+                List.of(received));
         customerRepository.save(withTheCreatedDevice);
 
         return Response.created(URI.create("/devices/" + received.uuid())).entity(received).build();

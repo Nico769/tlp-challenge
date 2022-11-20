@@ -7,7 +7,6 @@ import io.landolfi.customer.repository.InMemoryCustomerRepository;
 import io.landolfi.device.DeviceDto;
 import io.landolfi.device.DeviceResource;
 import io.landolfi.device.DeviceState;
-import io.landolfi.device.DevicesDto;
 import io.landolfi.device.repository.InMemoryDeviceRepository;
 import io.landolfi.doubles.CustomerUuidGeneratorFake;
 import io.landolfi.util.rest.ErrorDto;
@@ -393,6 +392,6 @@ class CustomerResourceTest {
         // Make sure that the created device has been correctly associated to the given customer
         Optional<CustomerDto> optGivenCustomerWithCreatedDevice = customerRepository.findByUuid(givenCustomerUuid.toString());
         CustomerDto givenCustomerWithCreatedDevice = optGivenCustomerWithCreatedDevice.orElseThrow(RuntimeException::new);
-        assertThat(givenCustomerWithCreatedDevice.devices()).isEqualTo(DevicesDto.withOneDevice(toCreate));
+        assertThat(givenCustomerWithCreatedDevice.devices()).containsOnly(toCreate);
     }
 }
