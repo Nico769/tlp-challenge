@@ -16,6 +16,9 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
                           @JsonProperty("fiscal_code") @NotBlank String fiscalCode,
                           @NotNull @Valid AddressDto address,
                           @Valid List<DeviceDto> devices) {
+
+    public static final int MAX_NUMBER_OF_ASSOCIATED_DEVICES = 2;
+
     public CustomerDto(String name, String surname, String fiscalCode, AddressDto address) {
         this(null, name, surname, fiscalCode, address, null);
     }
@@ -37,4 +40,10 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
                 && fiscalCode.equals(other.fiscalCode()));
     }
 
+    public boolean hasReachedTheMaximumNumberOfAssociatedDevices() {
+        if (devices == null) {
+           return false;
+        }
+        return devices.size() == MAX_NUMBER_OF_ASSOCIATED_DEVICES;
+    }
 }

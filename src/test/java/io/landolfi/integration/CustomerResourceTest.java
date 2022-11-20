@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -393,5 +394,47 @@ class CustomerResourceTest {
         Optional<CustomerDto> optGivenCustomerWithCreatedDevice = customerRepository.findByUuid(givenCustomerUuid.toString());
         CustomerDto givenCustomerWithCreatedDevice = optGivenCustomerWithCreatedDevice.orElseThrow(RuntimeException::new);
         assertThat(givenCustomerWithCreatedDevice.devices()).containsOnly(toCreate);
+    }
+    
+    @Test
+    void shouldNotAssociateTheGivenDeviceToTheGivenCustomerAndReturnConflictAlongWithTheReason_WhenPostingToTheSubresourceEndpointAndTheParentResourceIsAlreadyFull(){
+        // Arrange
+        final int maxNumberOfAssociatedDevices = 2;
+        DeviceDto firstAssociatedDevice = new DeviceDto("7b787913-bda9-41dc-8966-458fe1e3c5ce", DeviceState.ACTIVE);
+        DeviceDto secondAssociatedDevice = new DeviceDto("3813f9ce-b06c-4f0c-8514-b146df7bcb53", DeviceState.INACTIVE);
+        deviceRepository.save(firstAssociatedDevice);
+        deviceRepository.save(secondAssociatedDevice);
+
+        UUID givenCustomerUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        CustomerDto givenCustomer = new CustomerDto(givenCustomerUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress, List.of(firstAssociatedDevice, secondAssociatedDevice));
+        customerRepository.save(givenCustomer);
+
+        DeviceDto toCreate = new DeviceDto("4724302e-a619-41db-afc3-45ee34b234aa", DeviceState.ACTIVE);
+
+        String expectedReason = "Cannot create a new device for the given customer because the maximum number of " +
+                "associated devices has been reached";
+        ErrorDto expectedError = new ErrorDto(expectedReason);
+
+        // Act and Assert
+        ErrorDto actualError =
+                given()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(toCreate)
+                .when()
+                    .post("/" + givenCustomerUuid + "/devices")
+                .then()
+                    .statusCode(409)
+                    .extract().body().as(ErrorDto.class);
+
+        assertThat(actualError).isEqualTo(expectedError);
+
+        // Make sure that the initial state of the repository hasn't been changed
+        assertThat(deviceRepository.findAll()).hasSize(maxNumberOfAssociatedDevices);
+
+        // Make sure that the given customer hasn't been modified
+        Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(givenCustomerUuid.toString());
+        assertThat(storedCustomer).get().isEqualTo(givenCustomer);
     }
 }

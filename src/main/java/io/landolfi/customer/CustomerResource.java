@@ -91,9 +91,14 @@ public class CustomerResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        deviceRepository.save(received);
-
         CustomerDto toCreateADeviceFor = optToCreateADeviceFor.get();
+        if (toCreateADeviceFor.hasReachedTheMaximumNumberOfAssociatedDevices()) {
+            String errorReason = "Cannot create a new device for the given customer because the maximum number of " +
+                    "associated devices has been reached";
+            return Response.status(Response.Status.CONFLICT).entity(new ErrorDto(errorReason)).build();
+        }
+
+        deviceRepository.save(received);
         CustomerDto withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
                 toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
                 List.of(received));
