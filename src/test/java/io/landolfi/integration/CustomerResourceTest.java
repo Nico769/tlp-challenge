@@ -472,4 +472,28 @@ class CustomerResourceTest {
             .body("customers[0].devices[1].uuid", equalTo("3813f9ce-b06c-4f0c-8514-b146df7bcb53"))
             .body("customers[0].devices[1].state", equalTo(DeviceState.INACTIVE.toString()));
     }
+
+    @Test
+    void shouldRetrieveTheRequestedDeviceForTheGivenCustomerSuccessfully_WhenThatDeviceIsRequestedByUuidThroughTheSubresourceEndpoint() {
+        // Arrange
+        String deviceToRetrieveUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto givenDevice = new DeviceDto(deviceToRetrieveUuid, DeviceState.ACTIVE);
+        deviceRepository.save(givenDevice);
+
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        String givenCustomerUuid = "c8a255af-208d-4a98-bbff-8244a7a28609";
+        CustomerDto givenCustomer = new CustomerDto(UUID.fromString(givenCustomerUuid), "Nicola", "Landolfi",
+                "XFFTPK41D24B969W",
+                givenAddress, List.of(givenDevice));
+        customerRepository.save(givenCustomer);
+
+        // Act and Assert
+        when()
+            .get("/" + givenCustomerUuid + "/devices/" + deviceToRetrieveUuid)
+        .then()
+            .statusCode(200)
+            .body("devices", hasSize(1))
+            .body("devices[0].uuid", equalTo(deviceToRetrieveUuid))
+            .body("devices[0].state", equalTo(DeviceState.ACTIVE.toString()));
+    }
 }

@@ -2,6 +2,7 @@ package io.landolfi.customer;
 
 import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.device.DeviceDto;
+import io.landolfi.device.DevicesDto;
 import io.landolfi.device.repository.DeviceRepository;
 import io.landolfi.generator.UniqueIdGenerator;
 import io.landolfi.util.rest.ErrorDto;
@@ -105,5 +106,24 @@ public class CustomerResource {
         customerRepository.save(withTheCreatedDevice);
 
         return Response.created(URI.create("/devices/" + received.uuid())).entity(received).build();
+    }
+
+    @GET
+    @Path("/{customerId}/devices/{deviceId}")
+    public Response retrieveADeviceAssociatedToACustomer(@PathParam("customerId") String customerId, @PathParam(
+            "deviceId") String deviceId) {
+        Optional<CustomerDto> optGivenCustomer = customerRepository.findByUuid(customerId);
+        if (optGivenCustomer.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        CustomerDto givenCustomer = optGivenCustomer.get();
+        Optional<DeviceDto> optAssociatedDevice =
+                givenCustomer.devices().stream().filter(device -> device.uuid().equals(deviceId)).findFirst();
+        if (optAssociatedDevice.isEmpty()) {
+            return Response.ok().entity(DevicesDto.empty()).build();
+        }
+
+        return Response.ok().entity(DevicesDto.withOneDevice(optAssociatedDevice.get())).build();
     }
 }
