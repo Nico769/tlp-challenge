@@ -220,6 +220,7 @@ class CustomerResourceTest {
             .body("customers[0].address.region", equalTo("Veneto"));
     }
 
+
     @Test
     void shouldNotRetrieveAnyCustomer_WhenANonExistingCustomerIsRequested(){
         when()
@@ -436,5 +437,39 @@ class CustomerResourceTest {
         // Make sure that the given customer hasn't been modified
         Optional<CustomerDto> storedCustomer = customerRepository.findByUuid(givenCustomerUuid.toString());
         assertThat(storedCustomer).get().isEqualTo(givenCustomer);
+    }
+
+    @Test
+    void shouldRetrieveTheRequestedCustomerAndItsDevicesSuccessfully_WhenThatCustomerIsRequestedByUuidAndHasBeenPostedToTheEndpoint(){
+        // Arrange
+        DeviceDto firstAssociatedDevice = new DeviceDto("7b787913-bda9-41dc-8966-458fe1e3c5ce", DeviceState.ACTIVE);
+        DeviceDto secondAssociatedDevice = new DeviceDto("3813f9ce-b06c-4f0c-8514-b146df7bcb53", DeviceState.INACTIVE);
+        deviceRepository.save(firstAssociatedDevice);
+        deviceRepository.save(secondAssociatedDevice);
+
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        String givenCustomerUuid = "c8a255af-208d-4a98-bbff-8244a7a28609";
+        CustomerDto givenCustomer = new CustomerDto(UUID.fromString(givenCustomerUuid), "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress, List.of(firstAssociatedDevice, secondAssociatedDevice));
+        customerRepository.save(givenCustomer);
+
+        // Act and Assert
+        when()
+            .get("/" + givenCustomerUuid)
+        .then()
+            .statusCode(200)
+            .body("customers", hasSize(1))
+            .body("customers[0].uuid", equalTo(givenCustomerUuid))
+            .body("customers[0].name", equalTo("Nicola"))
+            .body("customers[0].surname", equalTo("Landolfi"))
+            .body("customers[0].fiscal_code", equalTo("XFFTPK41D24B969W"))
+            .body("customers[0].address.street", equalTo("Via fasulla 10"))
+            .body("customers[0].address.city", equalTo("Padova"))
+            .body("customers[0].address.province", equalTo("Padova"))
+            .body("customers[0].address.region", equalTo("Veneto"))
+            .body("customers[0].devices[0].uuid", equalTo("7b787913-bda9-41dc-8966-458fe1e3c5ce"))
+            .body("customers[0].devices[0].state", equalTo(DeviceState.ACTIVE.toString()))
+            .body("customers[0].devices[1].uuid", equalTo("3813f9ce-b06c-4f0c-8514-b146df7bcb53"))
+            .body("customers[0].devices[1].state", equalTo(DeviceState.INACTIVE.toString()));
     }
 }
