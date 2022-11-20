@@ -126,4 +126,20 @@ public class CustomerResource {
 
         return Response.ok().entity(DevicesDto.withOneDevice(optAssociatedDevice.get())).build();
     }
+
+    @GET
+    @Path("/{customerId}/devices")
+    public Response retrieveAllDevicesAssociatedToACustomer(@PathParam("customerId") String customerId) {
+        Optional<CustomerDto> optGivenCustomer = customerRepository.findByUuid(customerId);
+        if (optGivenCustomer.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        CustomerDto givenCustomer = optGivenCustomer.get();
+        if (givenCustomer.devices().isEmpty()) {
+            return Response.ok().entity(DevicesDto.empty()).build();
+        }
+
+        return Response.ok().entity(new DevicesDto(givenCustomer.devices())).build();
+    }
 }

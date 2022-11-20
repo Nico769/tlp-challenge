@@ -496,4 +496,33 @@ class CustomerResourceTest {
             .body("devices[0].uuid", equalTo(deviceToRetrieveUuid))
             .body("devices[0].state", equalTo(DeviceState.ACTIVE.toString()));
     }
+
+    @Test
+    void shouldSuccessfullyRetrieveAllDevicesForTheGivenCustomer_WhenRequestingAllDevicesThroughTheSubresourceEndpoint() {
+        // Arrange
+        String firstDeviceUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        String secondDeviceUuid = "3813f9ce-b06c-4f0c-8514-b146df7bcb53";
+        DeviceDto firstAssociatedDevice = new DeviceDto(firstDeviceUuid, DeviceState.ACTIVE);
+        DeviceDto secondAssociatedDevice = new DeviceDto(secondDeviceUuid, DeviceState.INACTIVE);
+        deviceRepository.save(firstAssociatedDevice);
+        deviceRepository.save(secondAssociatedDevice);
+
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        String givenCustomerUuid = "c8a255af-208d-4a98-bbff-8244a7a28609";
+        CustomerDto givenCustomer = new CustomerDto(UUID.fromString(givenCustomerUuid), "Nicola", "Landolfi",
+                "XFFTPK41D24B969W",
+                givenAddress, List.of(firstAssociatedDevice, secondAssociatedDevice));
+        customerRepository.save(givenCustomer);
+
+        // Act and Assert
+        when()
+            .get("/" + givenCustomerUuid + "/devices")
+        .then()
+            .statusCode(200)
+            .body("devices", hasSize(2))
+            .body("devices[0].uuid", equalTo(firstDeviceUuid))
+            .body("devices[0].state", equalTo(DeviceState.ACTIVE.toString()))
+            .body("devices[1].uuid", equalTo(secondDeviceUuid))
+            .body("devices[1].state", equalTo(DeviceState.INACTIVE.toString()));
+    }
 }
