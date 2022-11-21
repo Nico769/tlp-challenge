@@ -396,6 +396,41 @@ class CustomerResourceTest {
         CustomerDto givenCustomerWithCreatedDevice = optGivenCustomerWithCreatedDevice.orElseThrow(RuntimeException::new);
         assertThat(givenCustomerWithCreatedDevice.devices()).containsOnly(toCreate);
     }
+
+    @Test
+    void shouldSuccessfullyAddTheGivenDeviceToTheAssociatedDevicesOfTheGivenCustomer_WhenPostingToTheSubresourceEndpointAndTheParentResourceIsNotFull() {
+        // Arrange
+        UUID givenCustomerUuid = UUID.fromString("c8a255af-208d-4a98-bbff-8244a7a28609");
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        DeviceDto givenDevice = new DeviceDto("a4ee3c27-0446-44f1-a26f-2d013787bd5c", DeviceState.INACTIVE);
+        CustomerDto givenCustomer = new CustomerDto(givenCustomerUuid, "Nicola", "Landolfi", "XFFTPK41D24B969W",
+                givenAddress, List.of(givenDevice));
+        deviceRepository.save(givenDevice);
+        customerRepository.save(givenCustomer);
+
+        String deviceToCreateUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto toCreate = new DeviceDto(deviceToCreateUuid, DeviceState.ACTIVE);
+
+        // Act and Assert
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(toCreate)
+        .when()
+            .post("/" + givenCustomerUuid + "/devices")
+        .then()
+            .statusCode(201)
+            .header(HttpHeaders.LOCATION, devicesUri.resolve(devicesUri.getPath() + "/" + deviceToCreateUuid).toString())
+            .body("uuid", equalTo(deviceToCreateUuid))
+            .body("state", equalTo(DeviceState.ACTIVE.toString()));
+
+        // Make sure that the device is stored successfully in the repository
+        assertThat(deviceRepository.findAll()).hasSize(2);
+
+        // Make sure that the created device has been correctly added to the given customer
+        Optional<CustomerDto> optGivenCustomerWithCreatedDevice = customerRepository.findByUuid(givenCustomerUuid.toString());
+        CustomerDto givenCustomerWithCreatedDevice = optGivenCustomerWithCreatedDevice.orElseThrow(RuntimeException::new);
+        assertThat(givenCustomerWithCreatedDevice.devices()).contains(givenDevice, toCreate);
+    }
     
     @Test
     void shouldNotAssociateTheGivenDeviceToTheGivenCustomerAndReturnConflictAlongWithTheReason_WhenPostingToTheSubresourceEndpointAndTheParentResourceIsAlreadyFull(){

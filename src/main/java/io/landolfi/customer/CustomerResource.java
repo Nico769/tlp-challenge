@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Path("/customers")
 public class CustomerResource {
@@ -100,9 +101,19 @@ public class CustomerResource {
         }
 
         deviceRepository.save(received);
-        CustomerDto withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
-                toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
-                List.of(received));
+
+        CustomerDto withTheCreatedDevice;
+        if (toCreateADeviceFor.devices() == null) {
+            // No devices have been associated to this customer so far
+            withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
+                    toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
+                    List.of(received));
+        } else {
+            // One or more devices have been already associated to this customer so far
+            withTheCreatedDevice = new CustomerDto(toCreateADeviceFor.uuid(), toCreateADeviceFor.name(),
+                    toCreateADeviceFor.surname(), toCreateADeviceFor.fiscalCode(), toCreateADeviceFor.address(),
+                    Stream.concat(toCreateADeviceFor.devices().stream(), Stream.of(received)).toList());
+        }
         customerRepository.save(withTheCreatedDevice);
 
         return Response.created(URI.create("/devices/" + received.uuid())).entity(received).build();
