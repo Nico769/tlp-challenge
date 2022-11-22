@@ -52,4 +52,10 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
         }
         return devices.size() == MAX_NUMBER_OF_ASSOCIATED_DEVICES;
     }
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @Override
+    public List<DeviceDto> devices() {
+        return devices;
+    }
 }
