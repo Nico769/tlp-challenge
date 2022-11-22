@@ -1,5 +1,7 @@
 package io.landolfi.device;
 
+import io.landolfi.customer.CustomerDto;
+import io.landolfi.customer.repository.CustomerRepository;
 import io.landolfi.device.repository.DeviceRepository;
 import io.landolfi.util.rest.ErrorDto;
 
@@ -7,15 +9,20 @@ import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Path("/devices")
 public class DeviceResource {
 
     private final DeviceRepository<DeviceDto> deviceRepository;
+    private final CustomerRepository<CustomerDto> customerRepository;
 
-    public DeviceResource(DeviceRepository<DeviceDto> deviceRepository) {
+    public DeviceResource(DeviceRepository<DeviceDto> deviceRepository,
+                          CustomerRepository<CustomerDto> customerRepository) {
         this.deviceRepository = deviceRepository;
+        this.customerRepository = customerRepository;
     }
 
     @POST
@@ -61,6 +68,23 @@ public class DeviceResource {
     @Path("/{deviceId}")
     public Response deleteDevice(@PathParam("deviceId") String deviceId) {
         deviceRepository.deleteById(deviceId);
+
+        Optional<CustomerDto> optAssociatedCustomer = customerRepository.findByDeviceUuid(deviceId);
+        if (optAssociatedCustomer.isEmpty()) {
+            // Nothing else to do because the given device is not associated to any customer
+            return Response.noContent().build();
+        }
+
+        CustomerDto toUpdateCustomer = optAssociatedCustomer.get();
+
+        List<DeviceDto> toUpdateDevices = new ArrayList<>(toUpdateCustomer.devices());
+        toUpdateDevices.removeIf(d -> d.uuid().equals(deviceId));
+
+        CustomerDto updated = new CustomerDto(toUpdateCustomer.uuid(), toUpdateCustomer.name(), toUpdateCustomer.surname(),
+                toUpdateCustomer.fiscalCode(),
+                toUpdateCustomer.address(),toUpdateDevices);
+        customerRepository.save(updated);
+
         return Response.noContent().build();
     }
 }

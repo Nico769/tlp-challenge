@@ -13,4 +13,6 @@ public interface CustomerRepository<T> {
     void deleteAll();
 
     void deleteById(String uuid);
+
+    Optional<T> findByDeviceUuid(String deviceUuid);
 }

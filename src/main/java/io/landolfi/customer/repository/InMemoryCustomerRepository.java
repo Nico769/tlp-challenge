@@ -2,6 +2,7 @@ package io.landolfi.customer.repository;
 
 
 import io.landolfi.customer.CustomerDto;
+import io.landolfi.device.DeviceDto;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.*;
@@ -45,4 +46,29 @@ public class InMemoryCustomerRepository implements CustomerRepository<CustomerDt
         customers.remove(UUID.fromString(uuid));
     }
 
+    @Override
+    public Optional<CustomerDto> findByDeviceUuid(String deviceUuid) {
+        var allCustomers = customers.values().stream();
+        var allCustomersDevices = allCustomers.map(CustomerDto::devices);
+        var allDevicesFlatten = allCustomersDevices.flatMap(List::stream);
+        Optional<DeviceDto> optFoundDevice =
+                allDevicesFlatten.filter(device -> device.uuid().equals(deviceUuid)).findFirst();
+        if (optFoundDevice.isEmpty()) {
+            // No customer has been associated with the given device so far
+            return Optional.empty();
+        }
+
+        // One customer has been associated with the given device. Now we need to find who is that customer
+        DeviceDto foundDevice = optFoundDevice.get();
+        Optional<CustomerDto> optMatchingCustomer =
+                customers.values().stream().filter(customer -> customer.devices().contains(foundDevice)).findFirst();
+
+        if (optMatchingCustomer.isEmpty()) {
+            // TODO Nico769 22/11/22: throw some kind of "Defect" exception since if we hit this branch it means
+            //                        there is a programmer mistake somewhere
+            return Optional.empty();
+        }
+
+        return optMatchingCustomer;
+    }
 }
