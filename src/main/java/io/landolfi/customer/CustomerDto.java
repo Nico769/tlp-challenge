@@ -32,12 +32,18 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
     }
 
 
-
     public boolean isAnyImmutableFieldsDifferentFrom(CustomerDto other) {
+        if (devices == null) {
+            return !(uuid.equals(other.uuid())
+                    && name.equals(other.name())
+                    && surname.equals(other.surname())
+                    && fiscalCode.equals(other.fiscalCode()));
+        }
         return !(uuid.equals(other.uuid())
                 && name.equals(other.name())
                 && surname.equals(other.surname())
-                && fiscalCode.equals(other.fiscalCode()));
+                && fiscalCode.equals(other.fiscalCode())
+                && devices.equals(other.devices()));
     }
 
     public boolean hasReachedTheMaximumNumberOfAssociatedDevices() {
@@ -45,5 +51,11 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
            return false;
         }
         return devices.size() == MAX_NUMBER_OF_ASSOCIATED_DEVICES;
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @Override
+    public List<DeviceDto> devices() {
+        return devices;
     }
 }

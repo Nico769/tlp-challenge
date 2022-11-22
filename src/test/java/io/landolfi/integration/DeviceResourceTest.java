@@ -1,5 +1,8 @@
 package io.landolfi.integration;
 
+import io.landolfi.customer.AddressDto;
+import io.landolfi.customer.CustomerDto;
+import io.landolfi.customer.repository.InMemoryCustomerRepository;
 import io.landolfi.device.DeviceDto;
 import io.landolfi.device.DeviceResource;
 import io.landolfi.device.DeviceState;
@@ -15,7 +18,9 @@ import javax.inject.Inject;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.when;
@@ -31,6 +36,9 @@ class DeviceResourceTest {
 
     @Inject
     InMemoryDeviceRepository deviceRepository;
+
+    @Inject
+    InMemoryCustomerRepository customerRepository;
 
     @BeforeEach
     void beforeEach() {
@@ -253,4 +261,67 @@ class DeviceResourceTest {
         assertThat(deviceRepository.findAll()).isEmpty();
     }
 
+    @Test
+    void shouldRemoveTheAssociationBetweenACustomerAndADeletedDevice_WhenDeletingThatDevice() {
+        // Arrange
+        String associatedDeviceUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto associatedDevice = new DeviceDto(associatedDeviceUuid, DeviceState.ACTIVE);
+        deviceRepository.save(associatedDevice);
+
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        String givenCustomerUuid = "c8a255af-208d-4a98-bbff-8244a7a28609";
+        CustomerDto givenCustomer = new CustomerDto(UUID.fromString(givenCustomerUuid), "Nicola", "Landolfi",
+                "XFFTPK41D24B969W",
+                givenAddress, List.of(associatedDevice));
+        customerRepository.save(givenCustomer);
+
+        // Act and Assert
+        when()
+            .delete("/" + associatedDeviceUuid)
+        .then()
+            .statusCode(204);
+
+        // Make sure that the device is effectively deleted from the repository
+        assertThat(deviceRepository.findAll()).isEmpty();
+
+        // Make sure that the deleted device is no longer associated to the given customer
+        Optional<CustomerDto> optStoredCustomer = customerRepository.findByUuid(givenCustomerUuid);
+        CustomerDto storedCustomer = optStoredCustomer.orElseThrow(RuntimeException::new);
+        assertThat(storedCustomer.devices()).isEmpty();
+    }
+
+    @Test
+    void shouldUpdateTheDeviceAssociatedToACustomer_WhenUpdatingADeviceByState() {
+        // Arrange
+        String associatedDeviceUuid = "7b787913-bda9-41dc-8966-458fe1e3c5ce";
+        DeviceDto associatedDevice = new DeviceDto(associatedDeviceUuid, DeviceState.ACTIVE);
+        deviceRepository.save(associatedDevice);
+
+        AddressDto givenAddress = new AddressDto("Via fasulla 10", "Padova", "Padova", "Veneto");
+        String givenCustomerUuid = "c8a255af-208d-4a98-bbff-8244a7a28609";
+        CustomerDto givenCustomer = new CustomerDto(UUID.fromString(givenCustomerUuid), "Nicola", "Landolfi",
+                "XFFTPK41D24B969W",
+                givenAddress, List.of(associatedDevice));
+        customerRepository.save(givenCustomer);
+
+        DeviceDto expectedDevice = new DeviceDto(associatedDeviceUuid, DeviceState.LOST);
+
+        // Act and Assert
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(expectedDevice)
+        .when()
+            .put("/" + associatedDeviceUuid)
+        .then()
+            .statusCode(200);
+
+        // Make sure that the updated device is stored successfully in the repository
+        Optional<DeviceDto> storedDevice = deviceRepository.findByUuid(associatedDeviceUuid);
+        assertThat(storedDevice).get().isEqualTo(expectedDevice);
+
+        // Make sure that the updated device is correctly associated to the customer
+        CustomerDto storedCustomer =
+                customerRepository.findByUuid(givenCustomerUuid).orElseThrow(RuntimeException::new);
+        assertThat(storedCustomer.devices()).contains(expectedDevice);
+    }
 }
