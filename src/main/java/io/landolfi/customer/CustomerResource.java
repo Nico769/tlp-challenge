@@ -73,7 +73,7 @@ public class CustomerResource {
 
         // If we got here it means that the client is trying to update one of the immutable fields
         String errorReason = "A customer cannot be updated by the following field(s): uuid, name, surname, " +
-                "fiscal_code";
+                "fiscal_code, devices";
         return Response.status(422).entity(new ErrorDto(errorReason)).build();
     }
 

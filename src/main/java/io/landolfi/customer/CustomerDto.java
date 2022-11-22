@@ -32,12 +32,18 @@ public record CustomerDto(UUID uuid, @NotBlank String name, @NotBlank String sur
     }
 
 
-
     public boolean isAnyImmutableFieldsDifferentFrom(CustomerDto other) {
+        if (devices == null) {
+            return !(uuid.equals(other.uuid())
+                    && name.equals(other.name())
+                    && surname.equals(other.surname())
+                    && fiscalCode.equals(other.fiscalCode()));
+        }
         return !(uuid.equals(other.uuid())
                 && name.equals(other.name())
                 && surname.equals(other.surname())
-                && fiscalCode.equals(other.fiscalCode()));
+                && fiscalCode.equals(other.fiscalCode())
+                && devices.equals(other.devices()));
     }
 
     public boolean hasReachedTheMaximumNumberOfAssociatedDevices() {

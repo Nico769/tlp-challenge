@@ -296,7 +296,7 @@ class CustomerResourceTest {
                 "Immutabile", "Immutabile", "MNNWVM74A25C595N", givenAddress);
 
         String expectedReason = "A customer cannot be updated by the following field(s): uuid, name, surname, " +
-                "fiscal_code";
+                "fiscal_code, devices";
         ErrorDto expectedError = new ErrorDto(expectedReason);
 
         // Act and Assert
